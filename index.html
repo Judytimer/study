@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #message-board {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #message-input {
+            width: calc(100% - 110px);
+            height: 100px;
+            margin-bottom: 10px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #post-button {
+            width: 100px;
+            height: 100px;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #message-list {
+            margin-top: 20px;
+        }
+        .message-item {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .delete-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        @media (max-width: 600px) {
+            #message-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            #post-button {
+                width: 100%;
+                margin-left: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="message-board">
+        <h1>留言板</h1>
+        <textarea id="message-input" placeholder="请输入您的留言..."></textarea>
+        <button id="post-button">发布</button>
+        <div id="message-list">
+            <!-- 留言将动态插入到这里 -->
+        </div>
+    </div>
+
+    <script>
+        // 获取或初始化留言数据
+        function getMessages() {
+            const messages = localStorage.getItem('messages');
+            return messages ? JSON.parse(messages) : [];
+        }
+
+        // 保存留言数据
+        function saveMessages(messages) {
+            localStorage.setItem('messages', JSON.stringify(messages));
+        }
+
+        // 根据ID删除留言
+        function deleteMessage(id) {
+            const messages = getMessages();
+            const updatedMessages = messages.filter(message => message.id !== id);
+            saveMessages(updatedMessages);
+            renderMessages();
+        }
+
+        // 渲染留言列表
+        function renderMessages() {
+            const messages = getMessages();
+            const messageList = document.getElementById('message-list');
+            messageList.innerHTML = ''; // 清空现有列表
+
+            messages.forEach(message => {
+                const messageItem = document.createElement('div');
+                messageItem.className = 'message-item';
+
+                const messageContent = document.createElement('span');
+                messageContent.textContent = `${message.time}: ${message.text}`;
+                messageItem.appendChild(messageContent);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '删除';
+                deleteButton.addEventListener('click', function() {
+                    deleteMessage(message.id); // 绑定删除按钮事件
+                });
+
+                messageItem.appendChild(deleteButton);
+                messageList.appendChild(messageItem);
+            });
+        }
+
+        // 添加新留言
+        function addMessage() {
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value.trim();
+
+            if (messageText) {
+                const messages = getMessages();
+                const newMessage = {
+                    id: Date.now(), // 使用时间戳作为唯一ID
+                    text: messageText,
+                    time: new Date().toLocaleString() // 格式化时间
+                };
+                messages.push(newMessage);
+                saveMessages(messages);
+                renderMessages();
+                messageInput.value = ''; // 清空输入框
+            }
+        }
+
+        // 绑定发布按钮点击事件
+        document.getElementById('post-button').addEventListener('click', addMessage);
+
+        // 页面加载时渲染留言列表
+        renderMessages();
+    </script>
+</body>
+</html>
